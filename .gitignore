@@ -7,8 +7,6 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-react-todo-app-main.zip
-react-todo-app-main
 
 # Editor directories and files
 .vscode/*
