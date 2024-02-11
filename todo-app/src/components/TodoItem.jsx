@@ -68,24 +68,22 @@ function TodoItem({ todo }) {
           </div>
         </div>
         <div className={styles.todoActions}>
-          <div
+          <button
             className={styles.icon}
             onClick={() => handleDelete()}
-            onKeyDown={() => handleDelete()}
             tabIndex={0}
-            role="button"
+            type="button"
           >
             <MdDelete />
-          </div>
-          <div
+          </button>
+          <button
             className={styles.icon}
             onClick={() => handleUpdate()}
-            onKeyDown={() => handleUpdate()}
             tabIndex={0}
-            role="button"
+            type="button"
           >
             <MdEdit />
-          </div>
+          </button>
         </div>
       </motion.div>
       <TodoModal

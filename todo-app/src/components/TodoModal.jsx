@@ -93,11 +93,10 @@ function TodoModal({ type, modalOpen, setModalOpen, todo }) {
             animate="visible"
             exit="exit"
           >
-            <motion.div
+            <motion.button
               className={styles.closeButton}
-              onKeyDown={() => setModalOpen(false)}
               onClick={() => setModalOpen(false)}
-              role="button"
+              type="button"
               tabIndex={0}
               // animation
               initial={{ top: 40, opacity: 0 }}
@@ -105,7 +104,7 @@ function TodoModal({ type, modalOpen, setModalOpen, todo }) {
               exit={{ top: 40, opacity: 0 }}
             >
               <MdOutlineClose />
-            </motion.div>
+            </motion.button>
 
             <form className={styles.form} onSubmit={(e) => handleSubmit(e)}>
               <h1 className={styles.formTitle}>
