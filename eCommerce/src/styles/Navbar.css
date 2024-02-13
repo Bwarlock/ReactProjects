@@ -1,0 +1,46 @@
+.navbar {
+	width: 100%;
+	height: fit-content;
+	background-color: rgba(0, 0, 0, 0.9);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 8px 16px;
+}
+
+.navbar a {
+	text-decoration: none;
+}
+
+.logo {
+	color: whitesmoke;
+	font-size: 32px;
+	font-weight: 700;
+}
+.navbag {
+	width: fit-content;
+	height: fit-content;
+}
+
+.navbag-icon {
+	color: whitesmoke;
+	width: 32px;
+	height: 32px;
+}
+.navbag-quantity {
+	color: black;
+	background-color: rgb(255, 255, 128);
+	position: relative;
+
+	font-size: 16px;
+	font-weight: 500;
+
+	padding: 0 4px;
+	width: fit-content;
+	height: min-content;
+	border-radius: 100%;
+
+	z-index: 2;
+	right: 10px;
+	top: -20px;
+}

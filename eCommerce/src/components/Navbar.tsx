@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "../slices/store";
+import "../styles/Navbar.css";
 
 function Navbar() {
+	const { cartTotalQuantity } = useSelector((state: RootState) => state.cart);
 	return (
 		<nav className="navbar">
 			<Link to="/">
@@ -19,7 +23,7 @@ function Navbar() {
 							clipRule="evenodd"
 						/>
 					</svg>
-					<span className="navbag-quantity">3</span>
+					<span className="navbag-quantity">{cartTotalQuantity}</span>
 				</div>
 			</Link>
 		</nav>

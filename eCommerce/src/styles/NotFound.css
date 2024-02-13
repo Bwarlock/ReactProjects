@@ -1,0 +1,8 @@
+.not-found {
+	font-size: 24px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	min-height: calc(100vh - 96px);
+}

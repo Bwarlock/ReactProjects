@@ -1,11 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { apiPRODCUTS } from "../utils/apiURL.js";
+import { productState } from "../utils/interfaces";
 
-const initialState: {
-	items: unknown;
-	status: string | null;
-} = {
+const initialState: productState = {
 	items: [],
 	status: null,
 };
