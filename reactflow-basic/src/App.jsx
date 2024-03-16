@@ -1,110 +1,222 @@
-import { useEffect, useState } from 'react';
-import ReactFlow, { useNodesState, useEdgesState , Background } from 'reactflow';
-import 'reactflow/dist/style.css';
+import { useCallback, useEffect, useState } from "react";
+import ReactFlow, {
+	useNodesState,
+	useEdgesState,
+	Background,
+	Panel,
+	Controls,
+	BackgroundVariant,
+	addEdge,
+	MiniMap,
+} from "reactflow";
+import {
+	initialNodes,
+	initialEdges,
+	layoutNodes,
+} from "./slices/reactflowSlice";
+import { useDispatch, useSelector } from "react-redux";
+import {
+	onNodesChange,
+	onEdgesChange,
+	onConnect,
+	setNodes,
+	setEdges,
+	setNodeBg,
+	setNodeName,
+	setNodeHidden,
+	setSelectedNodeId,
+	updateNodes,
+} from "./slices/reactflowSlice";
 
-import './updatenode.css';
+import "reactflow/dist/style.css";
+import "./styles/App.css";
+import DefaultNode from "./components/defaultNode";
 
-const initialNodes = [
-  { id: '1', data: { label: '-' }, position: { x: 100, y: 100 } },
-  { id: '2', data: { label: 'Node 2' }, position: { x: 100, y: 200 } },
-];
-const initialEdges = [{ id: 'e1-2', source: '1', target: '2' }];
 const defaultViewport = { x: 0, y: 0, zoom: 1.5 };
+const connectionLineStyle = { stroke: "#000" };
+const nodeTypes = {
+	defaultnode: DefaultNode,
+};
 
 function App() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+	// WITH REDUX
+	const { nodes, edges, nodeName, nodeBg, nodeHidden } = useSelector(
+		(state) => state.reactflow
+	);
+	const dispatch = useDispatch();
 
-  const [nodeName, setNodeName] = useState('Node 1');
-  const [nodeBg, setNodeBg] = useState('#eee');
-  const [nodeHidden, setNodeHidden] = useState(false);
+	//WITHOUT REDUX
+	// const [nodeName, setNodeName] = useState(initialNodes[0].data.label);
+	// const [nodeBg, setNodeBg] = useState(initialNodes[0].style.backgroundColor);
+	// const [nodeHidden, setNodeHidden] = useState(false);
 
-  useEffect(() => {
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === '1') {
-          // it's important that you create a new object here
-          // in order to notify react flow about the change
-          node.data = {
-            ...node.data,
-            label: nodeName,
-          };
-        }
+	// const [selectedNodeId, setSelectedNodeId] = useState(initialNodes[0].id);
+	// const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+	// const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+	// useEffect(() => {
+	// 	setNodes((nodes) =>
+	// 		nodes.map((node) => {
+	// 			if (node.id === selectedNodeId) {
+	// 				// it's important that you create a new object here
+	// 				// in order to notify react flow about the change
+	// 				return {
+	// 					...node,
+	// 					data: {
+	// 						...node.data,
+	// 						label: nodeName,
+	// 					},
+	// 				};
+	// 			}
+	// 			return node;
+	// 		})
+	// 	);
+	// }, [nodeName]);
 
-        return node;
-      })
-    );
-  }, [nodeName, setNodes]);
+	// useEffect(() => {
+	// 	setNodes((nodes) =>
+	// 		nodes.map((node) => {
+	// 			if (node.id === selectedNodeId) {
+	// 				// it's important that you create a new object here
+	// 				// in order to notify react flow about the change
+	// 				return {
+	// 					...node,
+	// 					style: {
+	// 						...node.style,
+	// 						backgroundColor: nodeBg,
+	// 					},
+	// 				};
+	// 			}
 
-  useEffect(() => {
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === '1') {
-          // it's important that you create a new object here
-          // in order to notify react flow about the change
-          node.style = { ...node.style, backgroundColor: nodeBg };
-        }
+	// 			return node;
+	// 		})
+	// 	);
+	// }, [nodeBg]);
 
-        return node;
-      })
-    );
-  }, [nodeBg, setNodes]);
+	// useEffect(() => {
+	// 	setNodes((nodes) =>
+	// 		nodes.map((node) => {
+	// 			if (node.id === selectedNodeId) {
+	// 				// when you update a simple type you can just update the value
+	// 				return { ...node, hidden: nodeHidden };
+	// 			}
+	// 			return node;
+	// 		})
+	// 	);
+	// 	setEdges((edges) =>
+	// 		edges.map((edge) => {
+	// 			if (edge.source === selectedNodeId || edge.target === selectedNodeId) {
+	// 				return { ...edge, hidden: nodeHidden };
+	// 			}
+	// 			return edge;
+	// 		})
+	// 	);
+	// }, [nodeHidden]);
 
-  useEffect(() => {
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === '1') {
-          // when you update a simple type you can just update the value
-          node.hidden = nodeHidden;
-        }
+	// const onConnect = useCallback(
+	// 	(params) => setEdges((eds) => addEdge(params, eds)),
+	// 	[setEdges]
+	// );
+	const handleNodeClick = (e, node) => {
+		dispatch(setSelectedNodeId(node.id));
+		dispatch(setNodeName(node.data.label));
+		dispatch(setNodeBg(node.style.backgroundColor));
+	};
 
-        return node;
-      })
-    );
-    setEdges((eds) =>
-      eds.map((edge) => {
-        if (edge.id === 'e1-2') {
-          edge.hidden = nodeHidden;
-        }
+	return (
+		<>
+			<div className="reactflow-container">
+				<ReactFlow
+					nodes={nodes}
+					edges={edges}
+					nodeTypes={nodeTypes}
+					onNodesChange={(evt) => dispatch(onNodesChange(evt))}
+					onEdgesChange={(evt) => dispatch(onEdgesChange(evt))}
+					defaultViewport={defaultViewport}
+					onConnect={(evt) => dispatch(onConnect(evt))}
+					minZoom={0.4}
+					maxZoom={4}
+					snapToGrid={true}
+					snapGrid={[20, 20]}
+					onNodeClick={handleNodeClick}
+					connectionLineStyle={connectionLineStyle}>
+					<Panel position="top-right">
+						<div className="updatenode__controls">
+							<div className="updatenode__label">
+								<label>label</label>
+								<input
+									type="text"
+									value={nodeName}
+									onChange={(evt) => {
+										dispatch(setNodeName(evt.target.value));
+										dispatch(updateNodes());
+									}}
+								/>
+							</div>
+							<div className="updatenode__background">
+								<label>background</label>
+								<div className="flex-align">
+									<input
+										className="updatenode__bg__text"
+										type="text"
+										value={nodeBg}
+										onChange={(evt) => {
+											dispatch(setNodeBg(evt.target.value));
+											dispatch(updateNodes());
+										}}
+									/>
+									<input
+										type="color"
+										onChange={(evt) => {
+											dispatch(setNodeBg(evt.target.value));
+											dispatch(updateNodes());
+										}}
+										value={nodeBg}
+									/>
+								</div>
+							</div>
 
-        return edge;
-      })
-    );
-  }, [nodeHidden, setNodes, setEdges]);
-
-  return (
-    <div style={{ height: '100vh',width:'100vw' }}>
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      defaultViewport={defaultViewport}
-      minZoom={0.2}
-      maxZoom={4}
-      attributionPosition="bottom-left"
-    >
-      <div className="updatenode__controls">
-        <label>label:</label>
-        <input value={nodeName} onChange={(evt) => setNodeName(evt.target.value)} />
-
-        <label className="updatenode__bglabel">background:</label>
-        <input value={nodeBg} onChange={(evt) => setNodeBg(evt.target.value)} />
-
-        <div className="updatenode__checkboxwrapper">
-          <label>hidden:</label>
-          <input
-            type="checkbox"
-            checked={nodeHidden}
-            onChange={(evt) => setNodeHidden(evt.target.checked)}
-          />
-        </div>
-      </div>
-    <Background color="#ccc" variant="dots" />
-    </ReactFlow>
-    </div>
-  );
-  
+							<div className="updatenode__checkboxwrapper">
+								<label>hidden</label>
+								<input
+									type="checkbox"
+									checked={nodeHidden}
+									onChange={(evt) => {
+										dispatch(setNodeHidden(evt.target.checked));
+									}}
+								/>
+							</div>
+							<button onClick={() => dispatch(layoutNodes("dagre"))}>
+								Dagre Layout
+							</button>
+							<button onClick={() => dispatch(layoutNodes("d3"))}>
+								D3 Layout
+							</button>
+						</div>
+					</Panel>
+					<Controls position="bottom-left" />
+					<Background color="#444" variant={BackgroundVariant.Dots} />
+					<MiniMap
+						position="bottom-right"
+						zoomable={true}
+						pannable={true}
+						nodeColor={miniMapNodeColor}
+						nodeStrokeWidth={3}
+					/>
+				</ReactFlow>
+			</div>
+		</>
+	);
 }
 
-export default App
+function miniMapNodeColor(node) {
+	switch (node.selected) {
+		case true:
+			return "#222222";
+		case false:
+			return "#e2e2e2";
+		default:
+			return "#e2e2e2";
+	}
+}
+
+export default App;
