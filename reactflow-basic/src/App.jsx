@@ -12,7 +12,7 @@ import ReactFlow, {
 import {
 	initialNodes,
 	initialEdges,
-	layoutNodes,
+	onNodesDelete,
 } from "./slices/reactflowSlice";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -23,14 +23,13 @@ import {
 	setEdges,
 	setNodeBg,
 	setNodeName,
-	setNodeHidden,
 	setSelectedNodeId,
-	updateNodes,
 } from "./slices/reactflowSlice";
 
 import "reactflow/dist/style.css";
 import "./styles/App.css";
 import DefaultNode from "./components/defaultNode";
+import EditPanel from "./components/EditPanel";
 
 const defaultViewport = { x: 0, y: 0, zoom: 1.5 };
 const connectionLineStyle = { stroke: "#000" };
@@ -40,9 +39,7 @@ const nodeTypes = {
 
 function App() {
 	// WITH REDUX
-	const { nodes, edges, nodeName, nodeBg, nodeHidden } = useSelector(
-		(state) => state.reactflow
-	);
+	const { nodes, edges } = useSelector((state) => state.reactflow);
 	const dispatch = useDispatch();
 
 	//WITHOUT REDUX
@@ -117,6 +114,7 @@ function App() {
 	// 	[setEdges]
 	// );
 	const handleNodeClick = (e, node) => {
+		//Improve Selection Logic to accomodate deleted node revert to starting node id , name , bg
 		dispatch(setSelectedNodeId(node.id));
 		dispatch(setNodeName(node.data.label));
 		dispatch(setNodeBg(node.style.backgroundColor));
@@ -125,6 +123,7 @@ function App() {
 	return (
 		<>
 			<div className="reactflow-container">
+				{/* Should Use Callback in these dispatches*/}
 				<ReactFlow
 					nodes={nodes}
 					edges={edges}
@@ -138,61 +137,11 @@ function App() {
 					snapToGrid={true}
 					snapGrid={[20, 20]}
 					onNodeClick={handleNodeClick}
+					onNodesDelete={(evt) => dispatch(onNodesDelete(evt))}
+					selectionKeyCode={null}
+					multiSelectionKeyCode={null}
 					connectionLineStyle={connectionLineStyle}>
-					<Panel position="top-right">
-						<div className="updatenode__controls">
-							<div className="updatenode__label">
-								<label>label</label>
-								<input
-									type="text"
-									value={nodeName}
-									onChange={(evt) => {
-										dispatch(setNodeName(evt.target.value));
-										dispatch(updateNodes());
-									}}
-								/>
-							</div>
-							<div className="updatenode__background">
-								<label>background</label>
-								<div className="flex-align">
-									<input
-										className="updatenode__bg__text"
-										type="text"
-										value={nodeBg}
-										onChange={(evt) => {
-											dispatch(setNodeBg(evt.target.value));
-											dispatch(updateNodes());
-										}}
-									/>
-									<input
-										type="color"
-										onChange={(evt) => {
-											dispatch(setNodeBg(evt.target.value));
-											dispatch(updateNodes());
-										}}
-										value={nodeBg}
-									/>
-								</div>
-							</div>
-
-							<div className="updatenode__checkboxwrapper">
-								<label>hidden</label>
-								<input
-									type="checkbox"
-									checked={nodeHidden}
-									onChange={(evt) => {
-										dispatch(setNodeHidden(evt.target.checked));
-									}}
-								/>
-							</div>
-							<button onClick={() => dispatch(layoutNodes("dagre"))}>
-								Dagre Layout
-							</button>
-							<button onClick={() => dispatch(layoutNodes("d3"))}>
-								D3 Layout
-							</button>
-						</div>
-					</Panel>
+					<EditPanel />
 					<Controls position="bottom-left" />
 					<Background color="#444" variant={BackgroundVariant.Dots} />
 					<MiniMap

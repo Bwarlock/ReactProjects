@@ -1,17 +1,33 @@
 import { memo, useEffect } from "react";
-import { Handle, Position } from "reactflow";
+import { Handle, Position, useReactFlow } from "reactflow";
 // import { PropTypes } from "prop-types";
-import { useDispatch } from "react-redux";
-import { addChildNode } from "../slices/reactflowSlice";
+import { useDispatch, useSelector } from "react-redux";
+import {
+	addChildNode,
+	deleteNode,
+	layoutNodes,
+	onNodesDelete,
+	startingNodeId,
+} from "../slices/reactflowSlice";
 import { AnimatePresence, motion } from "framer-motion";
 
 const DefaultNode = memo(function Defaultnode(nodeData) {
+	const { deleteElements } = useReactFlow();
+
+	const { deleteVisible } = useSelector((state) => state.reactflow);
 	const dispatch = useDispatch();
 	useEffect(() => {
 		// console.log(nodeData);
 	}, []);
-	const handleAddNodes = () => {
+	const handleAddNode = () => {
 		dispatch(addChildNode(nodeData));
+	};
+	const handleDeleteNode = () => {
+		// deleteElements({ nodes: [nodeData] });
+		// Dont Know if Below Approach is better tbh
+		dispatch(deleteNode(nodeData));
+		dispatch(onNodesDelete([nodeData]));
+		dispatch(layoutNodes("d3"));
 	};
 	return (
 		<AnimatePresence>
@@ -21,12 +37,22 @@ const DefaultNode = memo(function Defaultnode(nodeData) {
 				style={{ background: "#555" }}
 				key={"target"}
 			/>
-			<span>{nodeData.data.label}</span>
+			<span key={"content"} className="defaultnode-content">
+				{nodeData.data.label}
+			</span>
+			{nodeData.id != startingNodeId && deleteVisible && (
+				<button
+					key={"deleteButton"}
+					className="defaultnode-deleteButton"
+					onClick={handleDeleteNode}>
+					Delete
+				</button>
+			)}
 			{nodeData.selected && (
 				<motion.button
 					className="defaultnode-addButton"
 					key={"addButton"}
-					onClick={handleAddNodes}
+					onClick={handleAddNode}
 					initial={{ right: 14, opacity: 0 }}
 					animate={{ right: -14, opacity: 1 }}
 					exit={{ top: 14, opacity: 0 }}>

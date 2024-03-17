@@ -95,3 +95,23 @@
 	width: 10px;
 	height: 10px;
 }
+
+.defaultnode-content {
+	display: inline-block;
+	width: 130px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	text-wrap: nowrap;
+}
+
+.defaultnode-deleteButton {
+	background: none;
+	background-color: white;
+	border-width: 1px;
+	position: absolute;
+	left: 0px;
+	top: -14px;
+	font-size: 0.5rem;
+	height: 12px;
+	cursor: pointer;
+}
