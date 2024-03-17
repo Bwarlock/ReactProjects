@@ -1,21 +1,32 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { addEdge, applyNodeChanges, applyEdgeChanges } from "reactflow";
+import {
+	addEdge,
+	applyNodeChanges,
+	applyEdgeChanges,
+	MarkerType,
+	getIncomers,
+	getOutgoers,
+	getConnectedEdges,
+} from "reactflow";
 import { getDagreLayout, getDTreeLayout } from "../utils/helperFunctions";
 
 export const nodeWidth = 150;
 export const nodeHeight = 35;
 export const layoutYAddition = 70;
+export const startingNodeId = "1";
 
 export const initialNodes = [
 	{
 		id: "1",
 		selected: true,
+		deletable: false,
 		data: { label: "Node 1" },
 		position: { x: 0, y: 0 },
 		x: 0,
 		y: 0,
 		type: "defaultnode",
 		style: { backgroundColor: "#aaaaaa" },
+		rank: 0,
 	},
 	{
 		id: "2",
@@ -26,10 +37,23 @@ export const initialNodes = [
 		y: 70,
 		type: "defaultnode",
 		style: { backgroundColor: "#aaaaaa" },
+		rank: 1,
 	},
 ];
 
-export const initialEdges = [{ id: "e1-2", source: "1", target: "2" }];
+export const initialEdges = [
+	{
+		id: "e1-2",
+		source: "1",
+		target: "2",
+		deletable: false,
+		markerEnd: {
+			type: MarkerType.ArrowClosed,
+			width: 20,
+			height: 20,
+		},
+	},
+];
 
 const initialState = {
 	nodes: initialNodes,
@@ -39,6 +63,7 @@ const initialState = {
 	nodeName: initialNodes[0].data.label,
 	nodeBg: initialNodes[0].style.backgroundColor,
 	nodeHidden: false,
+	deleteVisible: true,
 };
 
 const reactflowSlice = createSlice({
@@ -52,7 +77,17 @@ const reactflowSlice = createSlice({
 			state.edges = applyEdgeChanges(changes.payload, state.edges);
 		},
 		onConnect: (state, connection) => {
-			state.edges = addEdge(connection.payload, state.edges);
+			const newEdge = {
+				...connection.payload,
+				id: `e${connection.payload.source}-${connection.payload.target}`,
+				deletable: true,
+				markerEnd: {
+					type: MarkerType.ArrowClosed,
+					width: 20,
+					height: 20,
+				},
+			};
+			state.edges = addEdge(newEdge, state.edges);
 		},
 		setNodes: (state, nodes) => {
 			state.nodes = nodes.payload;
@@ -71,6 +106,42 @@ const reactflowSlice = createSlice({
 				? action.payload
 				: [action.payload];
 			state.edges = [...state.edges, ...edges];
+		},
+		deleteNode: (state, action) => {
+			state.nodes = state.nodes.filter((node) => node.id !== action.payload.id);
+		},
+		onNodesDelete: (state, action) => {
+			const deleted = action.payload;
+			const expandedEdges = [...state.edges];
+			const expandedNodes = [...state.nodes];
+			const newEdges = deleted.reduce((acc, node) => {
+				const incomers = getIncomers(node, expandedNodes, expandedEdges);
+				const outgoers = getOutgoers(node, expandedNodes, expandedEdges).filter(
+					(nod) => node.rank < nod.rank
+				);
+				const connectedEdges = getConnectedEdges([node], expandedEdges);
+
+				const createdEdges = incomers.flatMap(({ id: sourceVariable }) =>
+					outgoers.map(({ id: targetVariable }) => ({
+						id: `e${sourceVariable}-${targetVariable}`,
+						source: sourceVariable,
+						target: targetVariable,
+						deletable: false,
+						markerEnd: {
+							type: MarkerType.ArrowClosed,
+							width: 20,
+							height: 20,
+						},
+					}))
+				);
+				const remainingEdges = acc.filter(
+					(edge) =>
+						!connectedEdges.includes(edge) && !createdEdges.includes(edge)
+				);
+
+				return [...remainingEdges, ...createdEdges];
+			}, expandedEdges);
+			state.edges = newEdges;
 		},
 		addChildNode: (state, action) => {
 			const newNodes = [
@@ -95,6 +166,12 @@ const reactflowSlice = createSlice({
 					id: `e${action.payload.id}-${state.idCount}`,
 					source: action.payload.id,
 					target: `${state.idCount}`,
+					deletable: false,
+					markerEnd: {
+						type: MarkerType.ArrowClosed,
+						width: 20,
+						height: 20,
+					},
 				},
 			];
 
@@ -178,6 +255,9 @@ const reactflowSlice = createSlice({
 			state.nodes = newNodes;
 			state.selectedNodeId = action.payload;
 		},
+		setDeleteVisible: (state, action) => {
+			state.deleteVisible = action.payload;
+		},
 	},
 });
 export const {
@@ -195,5 +275,8 @@ export const {
 	setSelectedNodeId,
 	updateNodes,
 	layoutNodes,
+	onNodesDelete,
+	deleteNode,
+	setDeleteVisible,
 } = reactflowSlice.actions;
 export default reactflowSlice.reducer;

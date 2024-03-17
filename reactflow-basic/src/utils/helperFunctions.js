@@ -1,5 +1,9 @@
 import * as Dagre from "@dagrejs/dagre";
-import { nodeWidth, nodeHeight } from "../slices/reactflowSlice";
+import {
+	nodeWidth,
+	nodeHeight,
+	startingNodeId,
+} from "../slices/reactflowSlice";
 import { stratify, tree } from "d3-hierarchy";
 
 const dagreGraph = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
@@ -34,16 +38,23 @@ export const getDTreeLayout = (nodes, edges) => {
 
 	const hierarchy = stratify()
 		.id((node) => node.id)
-		.parentId((node) => edges.find((edge) => edge.target === node.id)?.source);
+		.parentId(
+			(node) =>
+				edges.find(
+					(edge) => edge.target === node.id && edge.target !== startingNodeId
+				)?.source
+		);
 	const root = hierarchy(nodes);
 	const layout = dTree
 		.nodeSize([nodeWidth * 2, nodeHeight * 2])
 		.separation(() => 0.75)(root);
 
 	return {
-		nodes: layout
-			.descendants()
-			.map((node) => ({ ...node.data, position: { x: node.x, y: node.y } })),
+		nodes: layout.descendants().map((node) => ({
+			...node.data,
+			position: { x: node.x, y: node.y },
+			rank: node.depth,
+		})),
 		edges,
 	};
 };
