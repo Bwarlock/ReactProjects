@@ -20,24 +20,22 @@ export const initialNodes = [
 		id: "1",
 		selected: true,
 		deletable: false,
-		data: { label: "Node 1" },
+		data: { label: "Node 1", rank: 0 },
 		position: { x: 0, y: 0 },
 		x: 0,
 		y: 0,
 		type: "defaultnode",
 		style: { backgroundColor: "#aaaaaa" },
-		rank: 0,
 	},
 	{
 		id: "2",
 		selected: false,
-		data: { label: "Node 2" },
+		data: { label: "Node 2", rank: 1 },
 		position: { x: 0, y: 70 },
 		x: 0,
 		y: 70,
 		type: "defaultnode",
 		style: { backgroundColor: "#aaaaaa" },
-		rank: 1,
 	},
 ];
 
@@ -111,37 +109,36 @@ const reactflowSlice = createSlice({
 			state.nodes = state.nodes.filter((node) => node.id !== action.payload.id);
 		},
 		onNodesDelete: (state, action) => {
-			const deleted = action.payload;
+			const node = action.payload[0];
 			const expandedEdges = [...state.edges];
 			const expandedNodes = [...state.nodes];
-			const newEdges = deleted.reduce((acc, node) => {
-				const incomers = getIncomers(node, expandedNodes, expandedEdges);
-				const outgoers = getOutgoers(node, expandedNodes, expandedEdges).filter(
-					(nod) => node.rank < nod.rank
-				);
-				const connectedEdges = getConnectedEdges([node], expandedEdges);
 
-				const createdEdges = incomers.flatMap(({ id: sourceVariable }) =>
-					outgoers.map(({ id: targetVariable }) => ({
-						id: `e${sourceVariable}-${targetVariable}`,
-						source: sourceVariable,
-						target: targetVariable,
-						deletable: false,
-						markerEnd: {
-							type: MarkerType.ArrowClosed,
-							width: 20,
-							height: 20,
-						},
-					}))
-				);
-				const remainingEdges = acc.filter(
-					(edge) =>
-						!connectedEdges.includes(edge) && !createdEdges.includes(edge)
-				);
+			const incomers = getIncomers(node, expandedNodes, expandedEdges);
+			const outgoers = getOutgoers(node, expandedNodes, expandedEdges).filter(
+				(nod) => node.data.rank < nod.data.rank
+			);
+			const connectedEdges = getConnectedEdges([node], expandedEdges);
 
-				return [...remainingEdges, ...createdEdges];
-			}, expandedEdges);
-			state.edges = newEdges;
+			const createdEdges = incomers.flatMap(({ id: sourceVariable }) =>
+				outgoers.map(({ id: targetVariable }) => ({
+					id: `e${sourceVariable}-${targetVariable}`,
+					source: sourceVariable,
+					target: targetVariable,
+					deletable: false,
+					markerEnd: {
+						type: MarkerType.ArrowClosed,
+						width: 20,
+						height: 20,
+					},
+				}))
+			);
+			const remainingEdges = state.edges.filter(
+				(edge) =>
+					connectedEdges.every((edg) => edg.id !== edge.id) &&
+					createdEdges.every((edg) => edg.id !== edge.id)
+			);
+
+			state.edges = [...remainingEdges, ...createdEdges];
 		},
 		addChildNode: (state, action) => {
 			const newNodes = [
@@ -149,7 +146,10 @@ const reactflowSlice = createSlice({
 				{
 					id: `${state.idCount}`,
 					selected: false,
-					data: { label: `Node ${state.idCount}` },
+					data: {
+						label: `Node ${state.idCount}`,
+						rank: action.payload.data.rank + 1,
+					},
 					position: {
 						x: action.payload.xPos,
 						y: action.payload.yPos + layoutYAddition,

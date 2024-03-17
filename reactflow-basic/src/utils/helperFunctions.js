@@ -52,8 +52,8 @@ export const getDTreeLayout = (nodes, edges) => {
 	return {
 		nodes: layout.descendants().map((node) => ({
 			...node.data,
+			data: { ...node.data.data, rank: node.depth },
 			position: { x: node.x, y: node.y },
-			rank: node.depth,
 		})),
 		edges,
 	};
