@@ -2,6 +2,7 @@ export interface product {
 	id: number;
 	title: string;
 	thumbnail: string;
+	images: string[];
 	description: string;
 	price: number;
 }
@@ -19,4 +20,11 @@ export interface cartState {
 	cartItems: cartProduct[];
 	cartTotalQuantity: number;
 	cartTotalAmount: number;
+}
+
+export interface responseData {
+	products: product[];
+	total: number;
+	skip: number;
+	limit: number;
 }

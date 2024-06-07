@@ -1,3 +1,4 @@
 const apiBASE = "https://dummyjson.com";
-export const apiPRODCUTS = `${apiBASE}/products`;
+// const apiBASE = "http://localhost:3000";
+export const apiPRODCUTS = `/products?limit=4`;
 export default apiBASE;

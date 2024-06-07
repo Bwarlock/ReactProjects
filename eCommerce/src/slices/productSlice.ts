@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-import { apiPRODCUTS } from "../utils/apiURL.js";
+import apiBASE, { apiPRODCUTS } from "../utils/apiURL.js";
 import { productState } from "../utils/interfaces";
 
 const initialState: productState = {
@@ -12,7 +12,7 @@ export const productsFetch = createAsyncThunk(
 	"products/productsFetch",
 	async () => {
 		try {
-			const response = await axios.get(apiPRODCUTS);
+			const response = await axios.get(apiBASE + apiPRODCUTS);
 			console.log(response?.data);
 			return response?.data?.products;
 		} catch (error) {
